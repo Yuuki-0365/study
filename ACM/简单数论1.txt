@@ -1,0 +1,116 @@
+1.快速幂
+求a^p
+inline int Pow(int a,int b)
+{
+    int ans = 1;
+    int mul = a;
+    while(b)
+    {
+        if(b&1) ans *= mul;
+        mul*=mul;
+        b>>=1;
+    }
+    return ans;
+}
+
+
+2.欧几里德算法
+欧几里德算法又称辗转相除法，是指用于计算两个正整数a，b的最大公约数
+inline int gcd(int a,int b)
+{
+    return b==0?a:gcd(b,a%b);
+}
+
+
+3.扩展欧几里德算法
+扩展欧几里德算法是用来在已知a, b求解一组x，y，使它们满足贝祖等式： ax+by = gcd(a, b) =d
+inline void exgcd(int a,int b,int &x,int &y)
+{
+    if(!b){
+        x=1,y=0,return ;
+    }
+    else
+    {
+        exgcd(b,a%b,y,x);y-=(a/b)*x;
+    }
+}
+
+
+4.乘法逆元
+除以一个数取模等于乘以这个数的逆元取模
+假设b存在乘法逆元，即与m互质（充要条件）。
+设c是b的逆元，即b∗c≡1(mod m)，那么有a/b=(a/b)∗1=(a/b)∗b∗c=a∗c(mod m) 
+逆元求解一般利用扩欧。
+当m为质数的时候直接使用费马小定理，m非质数使用欧拉函数。
+当m为质数的时候，有线性方法。(一般求1-N的逆元时用）
+inline int exgcd(int a,int b,int &x,int &y)
+{
+    int d=a;
+    if(!b){
+        x=1,y=0;
+    }
+    else
+    {
+        d=exgcd(b,a%b,y,x);y-=(a/b)*x;
+    }
+    return d;
+}
+
+
+5.费马小定理
+若p是质数，则
+a^(p-1)%m==1
+所以逆元为a^p-2，用快速幂即可
+
+费马小定理额外作用：
+a^m = a^(m%(p-1))
+
+O(n)时间求1~n逆元
+inv[1]=1;
+for(register int i=2;i<=n;i++)
+inv[i]=(long long)(p-p/i)*inv[p%i]%p;
+
+
+6.逆元的更多应用
+快速求阶乘的逆元：
+首先要求出 1！ 2！。。。n！ 的值， 先求出 n！的逆元。 逆元是积性函数， 可以根据n！的逆元 求出 1！ 2！。。。（n-1）！的逆元。
+(n!)^(-1)= (n-1)!^(-1)  *  n^(-1)   移项得( (n!)^(-1) )/( n^(-1) ) = (n-1)! ^ (-1)   根据除以一个数等价于乘以这个数的逆元
+(n!)^(-1) * n = (n-1)! ^ (-1)
+有什么用？
+求组合数C（n,m）%p的结果
+C(n,m)=n!/(n-m)!*m!
+只需求出(n-m)!*m!的逆元p1
+再计算n!%p*p1%p即可
+
+
+7.
+BSGS算法(Baby Step Giant Step)，即大步小步算法，用于求解这样的问题
+y^x≡ z(mod p) 的最小整数解，前提条件 （y,p）=1。
+此时先算出m = sqrt(p)
+然后另 x = im+j,此时有i,j<m
+移项有 y^mi ≡(z*y)^(-j),因为有逆元，不爽
+重新另x = im-j,这样移项是就能不去算逆元了
+这时有 y^mi ≡ z*y^j .
+这时只用枚举
+参考代码
+inline int BSGS(int y,int z)
+{
+    ma.clear();
+    ll m= sqrt(p)+1;
+    ll cj = z;
+    for(int i=0;i<m;i++)
+    {
+        ma[cj] = i;
+        cj = cj*y%p;
+    }
+    ll now = Pow(y,m);
+    cj = 1;
+    for(int i=1;i<=m+1;i++)
+    {
+        cj = cj*now%p;
+        if(ma.count(cj))
+        {
+            return i*m-ma[cj];
+        }
+    }
+}
